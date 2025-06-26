@@ -28,7 +28,11 @@ RUN sed -i s/mirror.centos.org/vault.centos.org/g /etc/yum.repos.d/*.repo && \
 RUN yum install --assumeyes -d1 psmisc python3-pip  httpd-tools nodejs npm && \
     pip3 install --upgrade setuptools && \
     pip3 install yq && \
-    curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl && \
+    export ARCH="$(uname -m)" && \
+    if [[ ${ARCH} == "s390x" ]]; then ARCH="s390x"; \
+    elif [[ ${ARCH} == "x86_64" ]]; then ARCH="amd64"; \
+    else echo "Unsupported architecture: ${ARCH}" && exit 1; fi && \
+    curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/${ARCH}/kubectl && \
     chmod +x ./kubectl && \
     mv ./kubectl /usr/local/bin && \
     bash <(curl -sL https://che-incubator.github.io/chectl/install.sh) --channel=next
